@@ -6,6 +6,7 @@
 #include <time.h>
 #include <cmath>
 #include <sstream>
+#include<windows.h>
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include <GL/glu.h>
@@ -13,19 +14,104 @@ void render( void );
  int position=300;
  int m=0;
  int d=0;
+ void display(void);
 static int animationPeriod = 4;
 static int isAnimate = 0;
 int score=0;
+bool mButtonPressed = false;
+float mouseX, mouseY;
 
 const int fact = 3;
 const int x = 80;
 const double DEG2RAD = 3.1415926535897932384/180;
-
+int viewPage=1;
 static double w = 200;
 static int flag = 0;
 static int walk = 0;
 static int x_ = 2500;
 using namespace std;
+
+void displayRasterText(float x ,float y ,float z ,char *stringToDisplay) {
+	glRasterPos3f(x, y, z);
+	for(char* c = stringToDisplay; *c != '\0'; c++){
+		glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24 , *c);
+	}
+}
+void mouseClick(int buttonPressed ,int state ,int x, int y) {
+
+	if(buttonPressed == GLUT_LEFT_BUTTON && state == GLUT_DOWN){
+		mButtonPressed = true;
+
+		mouseX = float(x);  //converting screen resolution to ortho 2d spec
+	mouseY = float(y);
+	}
+	else{
+		mButtonPressed = false;
+	}
+	glutPostRedisplay();
+}
+
+void startScreenDisplay()
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+    glColor3f(1,0,1);
+    displayRasterText(870 ,1700 ,0.4 ,"Dinosaur Game!!");
+	glLineWidth(10);
+	//SetDisplayMode(MENU_SCREEN);
+
+	glColor3f(1,0,0);
+
+	glBegin(GL_LINE_LOOP);               //Border
+		glVertex2f(500 ,500);
+		glVertex2f(500 ,1500);
+		glVertex2f(1500 ,1500);
+		glVertex2f(1500 ,500);
+	glEnd();
+
+	glLineWidth(1);
+
+	glColor3f(1, 1, 0);
+	glBegin(GL_POLYGON);				//START GAME PLOYGON
+		glVertex2f(700 ,1100);
+		glVertex2f(700 ,1300);
+		glVertex2f(1200 ,1300);
+		glVertex2f(1200 ,1100);
+	glEnd();
+glBegin(GL_POLYGON);				//Quit POLYGON
+		glVertex2f(700, 800);
+		glVertex2f(700 ,1000);
+		glVertex2f(1200 ,1000);
+		glVertex2f(1200 ,800);
+	glEnd();
+
+	if(mouseX>=400 && mouseX<=750 && mouseY>=200 && mouseY<=300){
+
+		glColor3f(0 ,0 ,1) ;
+		if(mButtonPressed){
+			viewPage = 2;
+			mButtonPressed = false;
+		}
+	} else
+		glColor3f(0 , 0, 0);
+       displayRasterText(860 ,1200 ,0.4 ,"Start Game");
+  if(mouseX>=400 && mouseX<=750 && mouseY>=320 && mouseY<=400){
+		glColor3f(0 ,0 ,1);
+		if(mButtonPressed){
+			mButtonPressed = false;
+			exit(0);
+		}
+	}
+	else
+		glColor3f(0 , 0, 0);
+	displayRasterText(870 ,900 ,0.4 ,"    Quit");
+
+
+
+glFlush();
+ 	glutSwapBuffers();
+glutPostRedisplay();
+}
+
 
 
 void DrawCircle(float cx, float cy, float r, int num_segments)
@@ -521,7 +607,17 @@ void render( void ){
         w = w - 8;
     glFlush();
 }
+void display(void){
 
+if(viewPage==1)
+{
+  startScreenDisplay();
+}
+else{
+    render();
+}
+
+}
 
 
 /// basic openGL structure start
@@ -538,12 +634,15 @@ int main( int argc , char** argv ){
     glutCreateWindow("Dinosaur Game!!");
 /// initialize the window screen (coordinate, color)
     setup();
+
 /// calling the main drawing function
-    glutDisplayFunc(render);
+
 /// calling the keyboard function (arrow key)
     glutKeyboardFunc(keyInput);
 /// calling the special keyboard function
     glutSpecialFunc(specialKeyInput);
 /// render the drawing screen on loop
+	glutMouseFunc(mouseClick);
+	glutDisplayFunc(display);
     glutMainLoop();
 }
